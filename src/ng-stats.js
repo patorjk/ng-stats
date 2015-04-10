@@ -41,6 +41,8 @@
     }
     digestIsHijacked = true;
     var $rootScope = getRootScope();
+    if ($rootScope === null) return;
+
     var scopePrototype = Object.getPrototypeOf($rootScope);
     var oldDigest = scopePrototype.$digest;
     scopePrototype.$digest = function $digest() {
@@ -134,6 +136,11 @@
     // general variables
     var bodyEl = angular.element(document.body);
     var noDigestSteps = 0;
+
+    // hide the display if no root scope can be found
+    if (getRootScope() === null) {
+      opts.styles.display = 'none';
+    }
 
     // add the DOM element
     state.$el = angular.element('<div><canvas></canvas><div></div></div>').css(opts.styles);
@@ -237,7 +244,7 @@
 
     // start everything
     shiftLeft();
-    if (!$rootScope.$$phase) {
+    if ($rootScope && !$rootScope.$$phase) {
       $rootScope.$digest();
     }
 
@@ -256,6 +263,11 @@
         onWatchCountUpdate: '&?'
       },
       link: function(scope, el, attrs) {
+        if (getRootScope() === null) {
+          console.warn('ng-stats: No root scope found. This is typically due to Debug Info being disabled in Angular. It must be enabled for the ng-stats plugin to work.');
+          return;
+        }
+
         hijackDigest();
         var directiveIndex = index++;
 
